@@ -4,7 +4,7 @@ var mysql = require('mysql');
 var request = require('request');
 
 var pool = mysql.createPool({
-    host:'192.168.1.8',
+    host:'10.3.40.165',
     port:'3306',
     user:'root',
     password:'123456',
@@ -44,6 +44,21 @@ router.post('/api/login', function(req, res, next) {
     }
   })
 });
+router.get('/api/getUserInfo', function(req, res, next) {
+  let openid = req.url.split("id=")[1]
+  connection.query(`select * from user where openid='${openid}'`, (err, rows) => {
+    if(err) {
+        console.log("根据用户的openid查找用户信息失败： " + JSON.stringify(err));
+        errBack(res, err)
+        return
+    }
+    res.send({
+      code: '000000',
+      content: rows[0]
+    });
+  })
+})
+
 /* 我的店铺*/
 router.get('/api/myshops', function(req, res, next) {
   let openid = req.url.split("openid=")[1]
@@ -76,7 +91,7 @@ router.post('/api/addshop', function(req, res, next) {
         return
     }
     let insertsql = `insert into shop (name, openid, color, phone, intro, address, cophone, dishtypes) 
-      values ('${info.shopName}', '${openid}', '${info.shopColor}', '${info.shopPhone}', '${info.shopIntro || ""}', '${info.shopAddress || ""}', '${info.shopCoPhone || ""}', '${info.labels ? info.labels.join("_") : ""}')`
+      values ('${info.shopName}', '${openid}', '${info.shopColor}', '${info.shopPhone || ""}', '${info.shopIntro || ""}', '${info.shopAddress || ""}', '${info.shopCoPhone || ""}', '${info.labels ? info.labels.join("_") : ""}')`
     connection.query(insertsql, err => {
       if(err) {
           console.log("新增店铺：插入店铺表失败： " + JSON.stringify(err));
@@ -96,7 +111,7 @@ router.post('/api/editshop', function(req, res, next) {
   let info = req.body.shopInfo
   let openid = req.body.openid
   let id = req.body.id
-  let updatesql = `update shop set name='${info.shopName}',phone='${info.shopPhone}',openid='${openid}',color='${info.shopColor}',address='${info.shopAddress || ""}',intro='${info.shopIntro || ""}',cophone='${info.shopCoPhone || ""}', dishtypes='${info.labels ? info.labels.join("_") : ""}' where id=${id}`
+  let updatesql = `update shop set name='${info.shopName}',phone='${info.shopPhone || ""}',openid='${openid}',color='${info.shopColor}',address='${info.shopAddress || ""}',intro='${info.shopIntro || ""}',cophone='${info.shopCoPhone || ""}', dishtypes='${info.labels ? info.labels.join("_") : ""}' where id=${id}`
   
   connection.query(updatesql, err => {
     if(err) {
